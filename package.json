@@ -1,0 +1,11 @@
+{
+  "name": "wowclassic-bg-ocr",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jimp": "^0.16.1",
+    "tesseract.js": "^2.1.1"
+  }
+}

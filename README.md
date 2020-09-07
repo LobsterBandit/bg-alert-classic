@@ -1,0 +1,71 @@
+# Experimental WoW Classic Battleground Timer OCR
+
+Use `tesseract.js` to analyze screenshots of WoW Classic WeakAuras showing active battleground timers.
+
+WeakAura examples:
+
+![All active](testdata/test.png)
+![Queue popped](testdata/test2.png)
+
+When one bg is ready for entry other active timers pause. Other timers will show the time already waited as a negative value rather than the expected time remaining, as shown in the second example screenshot.
+
+## Usage
+
+Currently images are expected to be alongside the app in the testdata folder. Future enhancements will allow the express server to accept an image via POST.
+
+```bash
+# setup dev container
+docker-compose up -d
+
+# enter container to run one-off script or start express server
+docker exec -it tesseractjs bash
+```
+
+### One-off
+
+```bash
+# node ocr.js <imagename>
+
+node ocr.js test2
+```
+
+Results
+
+```json
+[
+  {
+    "bg": "AB",
+    "hours": undefined,
+    "minutes": "-01",
+    "seconds": "15",
+    "ready": false
+  },
+  {
+    "bg": "WS",
+    "hours": undefined,
+    "minutes": undefined,
+    "seconds": undefined,
+    "ready": true
+  }
+]
+```
+
+### Express API Server
+
+```bash
+# start the server
+node index.js
+
+# analyze an image
+curl http://localhost:3000/ocr?imageName=test
+```
+
+Response
+
+```json
+[
+  { "bg": "AB", "minutes": "04", "seconds": "21", "ready": false },
+  { "bg": "AV", "hours": "01", "minutes": "59", "ready": false },
+  { "bg": "WS", "minutes": "01", "seconds": "13", "ready": false }
+]
+```
