@@ -6,6 +6,7 @@ services:
     container_name: tesseractjs
     user: node
     tty: true
+    working_dir: /home/node/app
     environment:
       - NODE_ENV=development
     volumes:

@@ -1,3 +1,4 @@
+const fs = require("fs/promises");
 const { createWorker } = require("tesseract.js");
 const jimp = require("jimp");
 
@@ -11,7 +12,8 @@ async function main(args) {
 
   const worker = await initWorker();
 
-  const buffer = await preprocessImage(args[0]);
+  const inputBuffer = await fs.readFile(args[0]);
+  const buffer = await preprocessImage(inputBuffer, true);
 
   const { data } = await worker.recognize(buffer);
 
@@ -48,11 +50,15 @@ async function initWorker() {
   return worker;
 }
 
-async function preprocessImage(imageName, saveIntermediate = false) {
-  const image = await jimp.read(`testdata/${imageName}.png`);
+async function preprocessImage(
+  inputBuffer,
+  saveIntermediate = false,
+  imageName = `preprocessed-${Date.now()}`
+) {
+  const image = await jimp.read(inputBuffer);
   image.contrast(1).scale(1.5);
   if (saveIntermediate) {
-    await image.writeAsync(`testdata/preprocessed${imageName}.png`);
+    await image.writeAsync(`testdata/${imageName}.png`);
   }
   const buffer = await image.getBufferAsync(jimp.MIME_PNG);
   return buffer;

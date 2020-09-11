@@ -1,33 +1,33 @@
 const express = require("express");
+const multer = require("multer");
 const { initWorker, parseResults, preprocessImage } = require("./ocr");
 
 const app = express();
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
 let worker;
 
-app.get("/ocr", async (req, res, next) => {
+app.post("/", async (req, res, next) => {
   if (!worker) {
     try {
       worker = await initWorker();
     } catch (error) {
       console.error(error);
+      next(error);
     }
   }
   next();
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/ocr", async (req, res) => {
-  console.log(req.query);
-  if (!req.query.imageName) {
-    res.status(400).send("Bad Request");
+app.post("/", upload.single("image"), async (req, res) => {
+  if (!req.file) {
+    res.status(400).send("Missing image");
   }
 
   try {
-    const buffer = await preprocessImage(req.query.imageName);
+    const buffer = await preprocessImage(req.file.buffer);
     const {
       data: { text },
     } = await worker.recognize(buffer);

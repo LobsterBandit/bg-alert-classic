@@ -53,8 +53,8 @@ Results
 ### Express API Server
 
 ```bash
-# start the server
-node index.js
+# start the server and reload on changes via nodemon
+npm start
 
 # analyze an image
 curl http://localhost:3000/ocr?imageName=test
