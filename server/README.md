@@ -26,7 +26,7 @@ docker exec -it tesseractjs bash
 ```bash
 # node ocr.js <imagename>
 
-node ocr.js test2
+node ocr.js testdata/test2.png
 ```
 
 Results
@@ -57,7 +57,7 @@ Results
 npm start
 
 # analyze an image
-curl http://localhost:3000/ocr?imageName=test
+curl -F image=@/path/to/image.png http://localhost:3000
 ```
 
 Response
