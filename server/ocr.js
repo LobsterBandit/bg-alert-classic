@@ -5,23 +5,6 @@ const jimp = require("jimp");
 const bgTimerRegex = /^(?<bg>[A-Z]{2}):\s(?<ready>READY!!!)?(?<hours>-?[0-9]{2}h)?\s?(?<minutes>-?[0-9]{2}m)?\s?(?<seconds>-?[0-9]{2}s)?$/gm;
 const charWhitelist = "ABDERSVWYhms:0123456789 !-";
 
-async function main(args) {
-  if (!args[0]) {
-    throw new Error("Must supply an input image");
-  }
-
-  const worker = await initWorker();
-
-  const inputBuffer = await fs.readFile(args[0]);
-  const buffer = await preprocessImage(inputBuffer, true);
-
-  const { data } = await worker.recognize(buffer);
-
-  await worker.terminate();
-
-  return data.text;
-}
-
 function parseResults(text) {
   console.log(text);
 
@@ -69,6 +52,23 @@ async function preprocessImage(
 }
 
 module.exports = { initWorker, parseResults, preprocessImage };
+
+async function main(args) {
+  if (!args[0]) {
+    throw new Error("Must supply an input image");
+  }
+
+  const worker = await initWorker();
+
+  const inputBuffer = await fs.readFile(args[0]);
+  const buffer = await preprocessImage(inputBuffer, true);
+
+  const { data } = await worker.recognize(buffer);
+
+  await worker.terminate();
+
+  return data.text;
+}
 
 if (!module.parent) {
   main(process.argv.slice(2))

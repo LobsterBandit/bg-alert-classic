@@ -46,15 +46,18 @@ app.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-// async function shutdownHandler() {
-//   console.log("SIGTERM signal received: closing HTTP server");
-//   await worker.terminate();
-//   app.close(() => {
-//     console.log("HTTP server closed");
-//   });
-// }
+async function shutdown(server) {
+  if (worker) {
+    await worker.terminate();
+  }
+  server.close((err) => {
+    if (err) {
+      console.error(err);
+      process.exitCode = 1;
+    }
+    console.log("HTTP server closed");
+    process.exit();
+  });
+}
 
-// process.on("SIGTERM", shutdownHandler);
-// process.on("SIGINT", shutdownHandler);
-
-module.exports = app;
+module.exports = { app, shutdown };

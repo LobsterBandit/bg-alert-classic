@@ -2,14 +2,17 @@ version: "3.8"
 
 services:
   server:
-    build: server
+    build:
+      context: server
+      dockerfile: Dockerfile
     container_name: wowclassic-bg-ocr-server
+    init: true
     ports:
       - "3003:3003"
     environment:
-      - SAVE_PREPROCESSED=true
       - NODE_ENV=production
       - PORT=3003
+      - SAVE_PREPROCESSED=true
     volumes:
       # map this volume to save images from the express server
       # if SAVE_PREPROCESSED is set to true

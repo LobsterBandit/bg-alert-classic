@@ -2,11 +2,12 @@ version: "3.8"
 
 services:
   server:
-    image: node:current-buster
+    build:
+      context: server
+      dockerfile: dev.Dockerfile
     container_name: wowclassic-bg-ocr-server-dev
     user: node
-    tty: true
-    working_dir: /home/node/app
+    working_dir: /usr/src
     ports:
       - "3003:3003"
     environment:
@@ -14,4 +15,8 @@ services:
       - PORT=3003
       - SAVE_PREPROCESSED=true
     volumes:
-      - ./:/home/node/app
+      - ./server:/usr/src
+      - server_nm:/usr/src/node_modules
+
+volumes:
+  server_nm:
