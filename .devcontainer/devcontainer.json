@@ -1,0 +1,41 @@
+{
+  "name": "wowclassic-bg-ocr-client",
+  "image": "lobsterbandit/dev-golang:edge",
+  "extensions": ["golang.go", "mhutchie.git-graph"],
+  "shutdownAction": "none",
+  // if launching container remote over ssh uncomment workspaceMount and update source/target dirs as needed
+  // mount source from git root so git commands will work from inside container
+  "workspaceMount": "source=/home/lobsterbandit/wowclassic-bg-ocr,target=/workspaces/wowclassic-bg-ocr,type=bind,consistency=cached",
+  "mounts": [
+    "source=go-vscode-server,target=/home/vscode/.vscode-server/extensions,type=volume",
+    "source=go-vscode-server-insiders,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
+  ],
+  "settings": {
+    "go.lintOnSave": "file",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--enable-all"],
+    "go.useLanguageServer": true,
+    "go.vetOnSave": "package",
+    "[go]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+      },
+      // Optional: Disable snippets, as they conflict with completion ranking.
+      "editor.snippetSuggestions": "none"
+    },
+    "[go.mod]": {
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+      }
+    },
+    "gopls": {
+      // Add parameter placeholders when completing a function.
+      "usePlaceholders": true,
+      // If true, enable additional analyses with staticcheck.
+      // Warning: This will significantly increase memory usage.
+      "staticcheck": false
+    }
+  }
+}
