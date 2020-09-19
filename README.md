@@ -1,6 +1,12 @@
 # wowclassic-bg-ocr
 
-A client/server tool to continuously capture a specific area of the screen containing BG timers for OCR analysis and alerting.
+A client/server tool to continuously capture a specific area of the screen containing Classic WoW BG timers for OCR analysis and alerting.
+
+## WeakAura
+
+[Classic BG Timer OCR](https://wago.io/LbpCpx26A)
+
+A custom WeakAura manages timer display and formatting within WoW which is then analyzed by screen capture by the client tool.
 
 ## [client](client/README.md)
 
