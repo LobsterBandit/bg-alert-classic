@@ -3,14 +3,26 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/kbinani/screenshot"
 )
+
+type BgTimer struct {
+	Bg      string
+	Hours   string
+	Minutes string
+	Seconds string
+	Ready   bool
+}
 
 func main() {
 	upload := true
@@ -24,7 +36,8 @@ func main() {
 	fmt.Printf("%v \"%s\"\n", bgArea, fileName)
 
 	if upload {
-		postImage(img, fileName)
+		timers := postImage(img, fileName)
+		fmt.Printf("%v\n", timers)
 	}
 
 	if save {
@@ -51,8 +64,46 @@ func captureBgArea() (image.Rectangle, *image.RGBA) {
 	return bgArea, img
 }
 
-func postImage(image *image.RGBA, fileName string) {
-	fmt.Printf("Posting image %s to OCR server", fileName)
+func postImage(image *image.RGBA, fileName string) []BgTimer {
+	fmt.Printf("Posting image %s to OCR server\n", fileName)
+
+	buf := new(bytes.Buffer)
+
+	w := multipart.NewWriter(buf)
+
+	fw, err := w.CreateFormFile("image", fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	err = png.Encode(fw, image)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Close()
+
+	req, err := http.NewRequest(http.MethodPost, "http://192.168.1.14:3003", buf)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	var timers []BgTimer
+
+	err = json.NewDecoder(resp.Body).Decode(&timers)
+	if err != nil {
+		panic(err)
+	}
+
+	return timers
 }
 
 func saveImage(image *image.RGBA, fileName string) {

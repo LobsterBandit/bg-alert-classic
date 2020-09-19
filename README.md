@@ -9,3 +9,8 @@ Go client to capture screenshots and upload to the server for analysis
 ## [server](server/README.md)
 
 node.js express server providing the OCR capabilities via a single POST endpoint
+
+```bash
+# run production build of ocr server
+docker-compose up -d --build
+```

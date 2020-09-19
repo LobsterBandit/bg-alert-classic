@@ -18,7 +18,7 @@ Currently images are expected to be alongside the app in the testdata folder. Fu
 docker-compose up -d
 
 # enter container to run one-off script or start express server
-docker exec -it tesseractjs bash
+docker-compose exec -it server bash
 ```
 
 ### One-off

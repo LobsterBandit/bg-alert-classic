@@ -1,4 +1,6 @@
 node_modules
 dist
-preprocessed*.png
 *.traineddata
+testdata/
+!test.png
+!test2.png

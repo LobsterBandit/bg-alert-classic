@@ -25,9 +25,14 @@ app.post("/", upload.single("image"), async (req, res) => {
   if (!req.file) {
     res.status(400).send("Missing image");
   }
+  console.log(req.file);
 
   try {
-    const buffer = await preprocessImage(req.file.buffer);
+    const buffer = await preprocessImage(
+      req.file.buffer,
+      process.env.SAVE_PREPROCESSED,
+      req.file.originalname
+    );
     const {
       data: { text },
     } = await worker.recognize(buffer);

@@ -58,7 +58,11 @@ async function preprocessImage(
   const image = await jimp.read(inputBuffer);
   image.contrast(1).scale(1.5);
   if (saveIntermediate) {
-    await image.writeAsync(`testdata/${imageName}.png`);
+    await image.writeAsync(
+      imageName.endsWith(".png")
+        ? `testdata/${imageName}`
+        : `testdata/${imageName}.png`
+    );
   }
   const buffer = await image.getBufferAsync(jimp.MIME_PNG);
   return buffer;

@@ -1,4 +1,4 @@
-module github.com/lobsterbandit/wowclassic-bg-ocr-client
+module github.com/lobsterbandit/wowclassic-bg-ocr/client
 
 go 1.15
 

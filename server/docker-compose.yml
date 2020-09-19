@@ -1,13 +1,17 @@
 version: "3.8"
 
 services:
-  tesseractjs:
+  server:
     image: node:current-buster
-    container_name: tesseractjs
+    container_name: wowclassic-bg-ocr-server-dev
     user: node
     tty: true
     working_dir: /home/node/app
+    ports:
+      - "3003:3003"
     environment:
       - NODE_ENV=development
+      - PORT=3003
+      - SAVE_PREPROCESSED=true
     volumes:
       - ./:/home/node/app
