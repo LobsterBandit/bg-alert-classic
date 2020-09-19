@@ -14,5 +14,5 @@ docker run --rm -it --mount type=bind,source="$(pwd)",targer=/usr/src lobsterban
 ```bash
 # build with windows/amd64 target
 # screenshot code is os specific
-GOOS=windows GOARCH=amd64 go build
+GOOS=windows GOARCH=amd64 go build -trimpath -o bin cmd/classic-bg-ocr
 ```
