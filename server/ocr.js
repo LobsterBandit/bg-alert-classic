@@ -2,7 +2,7 @@ const fs = require("fs/promises");
 const { createWorker } = require("tesseract.js");
 const jimp = require("jimp");
 
-const bgTimerRegex = /^(?<bg>[A-Z]{2}):\s(?<ready>READY!!!)?(?<hours>-?[0-9]{2}h)?\s?(?<minutes>-?[0-9]{2}m)?\s?(?<seconds>-?[0-9]{2}s)?$/gm;
+const bgTimerRegex = /^(?<bg>[ABSWV]{2}):\s(?<ready>READY!!!)?(?<hours>-?[0-9]{2}h)?\s?(?<minutes>-?[0-9]{2}m)?\s?(?<seconds>-?[0-9]{2}s)?$/gm;
 const charWhitelist = "ABDERSVWYhms:0123456789 !-";
 
 function parseResults(text) {
