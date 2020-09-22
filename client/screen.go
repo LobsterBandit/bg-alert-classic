@@ -1,5 +1,3 @@
-// +build windows
-
 package client
 
 import (
@@ -15,4 +13,16 @@ func CaptureScreenArea(area image.Rectangle) *image.RGBA {
 	}
 
 	return img
+}
+
+func GetScreenBounds(display int) image.Rectangle {
+	return screenshot.GetDisplayBounds(display)
+}
+
+func PrimaryScreenBounds() image.Rectangle {
+	return screenshot.GetDisplayBounds(0)
+}
+
+func NumActiveDisplays() int {
+	return screenshot.NumActiveDisplays()
 }
