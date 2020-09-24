@@ -1,1 +1,0 @@
-cd client && GOOS=windows GOARCH=amd64 go build -trimpath -o bin ./cmd/classic-bg-ocr

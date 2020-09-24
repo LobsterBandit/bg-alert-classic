@@ -1,18 +1,19 @@
 package client
 
 import (
+	"fmt"
 	"image"
 
 	"github.com/kbinani/screenshot"
 )
 
-func CaptureScreenArea(area image.Rectangle) *image.RGBA {
+func CaptureScreenArea(area image.Rectangle) (*image.RGBA, error) {
 	img, err := screenshot.CaptureRect(area)
 	if err != nil {
-		panic(err)
+		err = fmt.Errorf("screen capture error: %w", err)
 	}
 
-	return img
+	return img, err
 }
 
 func GetScreenBounds(display int) image.Rectangle {

@@ -1,16 +1,22 @@
-// +build windows
-
 package main
 
 import (
 	"fmt"
 	"image"
+	"os"
 	"time"
 
 	"github.com/lobsterbandit/wowclassic-bg-ocr/client"
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Printf("Fatal error: %v", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	version := "v1.0.0-alpha1"
 	upload := true
 	save := true
@@ -27,7 +33,7 @@ func main() {
 	}
 	bgArea := image.Rectangle{pt0, pt1}
 
-	img := client.CaptureScreenArea(bgArea)
+	img, err := client.CaptureScreenArea(bgArea)
 
 	captureTime := time.Now()
 	fileName := fmt.Sprintf("%dx%d_%s_%s_%d.png",
@@ -36,11 +42,17 @@ func main() {
 	fmt.Printf("Captured screen area: %v\n\tTimestamp: %s\n\tFilename: %q\n\n", bgArea, captureTime, fileName)
 
 	if upload {
-		timers := client.PostImage("http://192.168.1.14:3003", img, fileName)
+		timers, postErr := client.PostImage("http://192.168.1.14:3003", img, fileName)
+		if postErr != nil {
+			err = postErr
+		}
+
 		fmt.Printf("\nTimer Results:\n%v\n", timers)
 	}
 
 	if save {
-		client.SaveImage(img, fileName)
+		err = client.SaveImage(img, fileName)
 	}
+
+	return err
 }
