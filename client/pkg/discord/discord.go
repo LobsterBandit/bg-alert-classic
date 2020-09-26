@@ -4,6 +4,7 @@ package discord
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -16,21 +17,18 @@ import (
 	"github.com/lobsterbandit/wowclassic-bg-ocr/client"
 )
 
-const (
-	webhookID    string = "758496757217755167"
-	webhookToken string = "CWZS8f3gABLgyq2XMWqmq5F3-I4hgW37CHvzeX_nk8nf0Z4ldfxbrG9HqZYm2DrPuERF"
-)
+var webhookBaseURL string = "https://discordapp.com/api/webhooks/"
 
-var discordWebhookURL string
-
-func init() {
-	discordWebhookURL = fmt.Sprintf("https://discordapp.com/api/webhooks/%s/%s", webhookID, webhookToken)
+type Webhook struct {
+	ID     string
+	Token  string
+	Params *WebhookParams
 }
 
 type WebhookParams struct {
 	Content  string           `json:"content,omitempty"`
 	Username string           `json:"username,omitempty"`
-	Images   []WebhookImage   `json:"images,omitempty"`
+	Images   []*WebhookImage  `json:"images,omitempty"`
 	Embeds   []*MessageEmbed  `json:"embeds,omitempty"`
 	Timers   []client.BgTimer `json:"timers,omitempty"`
 }
@@ -40,18 +38,12 @@ type WebhookImage struct {
 	Image *image.RGBA
 }
 
-func PostDiscordMessage(images []WebhookImage, timers []client.BgTimer) (err error) {
+func (w *Webhook) PostDiscordMessage() (err error) {
 	fmt.Println("\nSending webhook to discord...")
-
-	webhookParams := &WebhookParams{
-		Content: "BG Timer Message",
-		Images:  images,
-		Timers:  timers,
-	}
 
 	// fmt.Printf("Webhook payload: %v\n", webhookParams)
 
-	msg, err := executeWebhookMultipart(false, webhookParams)
+	msg, err := w.executeMultipart(false)
 	if err != nil {
 		return
 	}
@@ -66,45 +58,45 @@ func PostDiscordMessage(images []WebhookImage, timers []client.BgTimer) (err err
 	return
 }
 
-func executeWebhookMultipart(wait bool, data *WebhookParams) (response *Message, err error) {
+func (w *Webhook) URL() string {
+	return webhookBaseURL + w.ID + "/" + w.Token
+}
+
+func (w *Webhook) executeMultipart(wait bool) (response *Message, err error) {
 	body := new(bytes.Buffer)
-	w := multipart.NewWriter(body)
+	mw := multipart.NewWriter(body)
 
 	// add image form fields
-	err = addImageParts(w, data.Images)
+	err = addImageParts(mw, w.Params.Images)
 	if err != nil {
 		return
 	}
 
 	// add other content in form field "payload_json"
-	if data.Content != "" {
-		err = addPayloadJSON(w, data.Content)
+	if w.Params.Content != "" {
+		err = addPayloadJSON(mw, w.Params.Content)
 		if err != nil {
 			return
 		}
 	}
 
-	w.Close()
+	mw.Close()
 
-	// req, err := http.NewRequestWithContext(context.TODO(), http.MethodPost, discordWebhookURL, body)
-	// if err != nil {
-	// 	return
-	// }
-
-	// if body != nil {
-	// 	req.Header.Set("Content-Type", w.FormDataContentType())
-	// }
-
-	// resp, err := http.DefaultClient.Do(req)
-
-	url := discordWebhookURL
+	url := w.URL()
 	if wait {
 		url += "?wait=true"
 	}
 
 	fmt.Printf("Issuing webhook to %s\n", url)
 
-	resp, err := http.Post(url, w.FormDataContentType(), body)
+	req, err := http.NewRequestWithContext(context.TODO(), http.MethodPost, url, body)
+	if err != nil {
+		return
+	}
+
+	req.Header.Add("Content-Type", mw.FormDataContentType())
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -125,7 +117,7 @@ func executeWebhookMultipart(wait bool, data *WebhookParams) (response *Message,
 	return response, nil
 }
 
-func addImageParts(w *multipart.Writer, images []WebhookImage) error {
+func addImageParts(w *multipart.Writer, images []*WebhookImage) error {
 	for i, image := range images {
 		fw, err := w.CreateFormFile("image"+strconv.Itoa(i), image.Name)
 		if err != nil {
@@ -148,12 +140,6 @@ func addPayloadJSON(w *multipart.Writer, content string) error {
 	if err != nil {
 		return err
 	}
-	// var tmp struct {
-	// 	Content string `json:"content"`
-	// }
-
-	// tmp.Content = content
-	// fmt.Println(string(jsonPayload))
 
 	fw, err := w.CreateFormField("payload_json")
 	if err != nil {

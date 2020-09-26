@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"image"
 	"time"
@@ -11,10 +12,12 @@ import (
 )
 
 var (
-	analyze bool
-	discord bool
-	file    string
-	save    bool
+	analyze      bool
+	discord      bool
+	file         string
+	save         bool
+	webhookID    string
+	webhookToken string
 
 	captureCmd = &cobra.Command{
 		Use:   "capture",
@@ -22,13 +25,18 @@ var (
 		Long:  "capture the full screen or a given rectangle",
 		RunE:  runCapture,
 	}
+
+	ErrWebhookMissingRequiredArgs = errors.New("webhookID and webhookToken are required")
 )
 
 func init() {
 	captureCmd.PersistentFlags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
-	captureCmd.PersistentFlags().BoolVarP(&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
+	captureCmd.PersistentFlags().BoolVarP(
+		&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
 	captureCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "path to a local image file")
 	captureCmd.PersistentFlags().BoolVarP(&save, "save", "s", false, "save captured image to file")
+	captureCmd.PersistentFlags().StringVarP(&webhookID, "id", "i", "", "discord webhook id")
+	captureCmd.PersistentFlags().StringVarP(&webhookToken, "token", "t", "", "discord webhook token")
 
 	rootCmd.AddCommand(captureCmd)
 }
@@ -36,6 +44,13 @@ func init() {
 func runCapture(cmd *cobra.Command, args []string) error {
 	fmt.Printf("\nwowclassic-bg-ocr-client %v\n\tWoW Classic BG timer screen capture and analysis\n\n", version)
 
+	// exit early if required arg combinations are not met
+	if discord && (webhookID == "" || webhookToken == "") {
+		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
+	}
+
+	// get points from flags
+	// otherwise default to primary screen bounds
 	pt0 := image.Point{
 		X: 575,
 		Y: 1275,
@@ -65,10 +80,20 @@ func runCapture(cmd *cobra.Command, args []string) error {
 	}
 
 	if discord {
+		webhook := &d.Webhook{
+			ID:    webhookID,
+			Token: webhookToken,
+			Params: &d.WebhookParams{
+				Content: "BG Timer Alert",
+				Images: []*d.WebhookImage{
+					{Name: fileName, Image: img},
+				},
+				Timers: timers,
+			},
+		}
+
 		// webhook to post discord channel message
-		err = d.PostDiscordMessage([]d.WebhookImage{
-			{Name: fileName, Image: img},
-		}, timers)
+		err = webhook.PostDiscordMessage()
 		if err != nil {
 			return err
 		}
