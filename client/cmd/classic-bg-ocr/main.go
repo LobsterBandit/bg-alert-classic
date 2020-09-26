@@ -19,6 +19,7 @@ func main() {
 func run() error {
 	version := "v1.0.0-alpha1"
 	upload := true
+	discord := true
 	save := true
 
 	fmt.Printf("\nwowclassic-bg-ocr-client %v\n\tWoW Classic BG timer screen capture and analysis\n\n", version)
@@ -41,18 +42,31 @@ func run() error {
 
 	fmt.Printf("Captured screen area: %v\n\tTimestamp: %s\n\tFilename: %q\n\n", bgArea, captureTime, fileName)
 
+	var timers []client.BgTimer
 	if upload {
-		timers, postErr := client.PostImage("http://192.168.1.14:3003", img, fileName)
-		if postErr != nil {
-			err = postErr
+		timers, err = client.PostImage("http://192.168.1.14:3003", img, fileName)
+		if err != nil {
+			return err
 		}
 
 		fmt.Printf("\nTimer Results:\n%v\n", timers)
 	}
 
+	if discord {
+		// webhook to post discord channel message
+		err = client.PostDiscordMessage([]client.WebhookImage{
+			{Name: fileName, Image: img},
+		}, timers)
+		if err != nil {
+			return err
+		}
+	}
+
 	if save {
 		err = client.SaveImage(img, fileName)
 	}
+
+	fmt.Println("\nComplete!")
 
 	return err
 }
