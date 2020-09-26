@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/lobsterbandit/wowclassic-bg-ocr/client"
+	d "github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/discord"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +66,7 @@ func runCapture(cmd *cobra.Command, args []string) error {
 
 	if discord {
 		// webhook to post discord channel message
-		err = client.PostDiscordMessage([]client.WebhookImage{
+		err = d.PostDiscordMessage([]d.WebhookImage{
 			{Name: fileName, Image: img},
 		}, timers)
 		if err != nil {
