@@ -6,8 +6,9 @@ import (
 	"image"
 	"time"
 
-	"github.com/lobsterbandit/wowclassic-bg-ocr/client"
 	d "github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/discord"
+	"github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/img"
+	"github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/screen"
 	"github.com/spf13/cobra"
 )
 
@@ -30,9 +31,11 @@ var (
 )
 
 func init() {
+	// TODO: add ocr server flag for when analyze is set
 	captureCmd.Flags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
 	captureCmd.Flags().BoolVarP(
 		&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
+	// TODO: add output flag for file save location
 	captureCmd.Flags().StringVarP(&file, "file", "f", "", "path to a local image file")
 	captureCmd.Flags().BoolVarP(&save, "save", "s", false, "save captured image to file")
 	captureCmd.Flags().StringVarP(&webhookID, "id", "i", "", "discord webhook id")
@@ -61,17 +64,22 @@ func runCapture(cmd *cobra.Command, args []string) error {
 	}
 	bgArea := image.Rectangle{pt0, pt1}
 
-	img, err := client.CaptureScreenArea(bgArea)
+	capture, err := screen.CaptureScreenArea(bgArea)
 
 	captureTime := time.Now()
 	fileName := fmt.Sprintf("%dx%d_%s_%s_%d.png",
-		img.Rect.Dx(), img.Rect.Dy(), bgArea.Min, bgArea.Max, captureTime.Unix())
+		capture.Rect.Dx(), capture.Rect.Dy(), bgArea.Min, bgArea.Max, captureTime.Unix())
 
 	fmt.Printf("Captured screen area: %v\n\tTimestamp: %s\n\tFilename: %q\n\n", bgArea, captureTime, fileName)
 
-	var timers []client.BgTimer
+	imageFile := &img.File{
+		Name:  fileName,
+		Image: capture,
+	}
+
+	var timers []img.BgTimer
 	if analyze {
-		timers, err = client.PostImage("http://192.168.1.14:3003", img, fileName)
+		timers, err = imageFile.Post("http://192.168.1.14:3003")
 		if err != nil {
 			return err
 		}
@@ -85,10 +93,8 @@ func runCapture(cmd *cobra.Command, args []string) error {
 			Token: webhookToken,
 			Params: &d.WebhookParams{
 				Content: "BG Timer Alert",
-				Images: []*d.WebhookImage{
-					{Name: fileName, Image: img},
-				},
-				Timers: timers,
+				Images:  []*img.File{imageFile},
+				Timers:  timers,
 			},
 		}
 
@@ -100,7 +106,7 @@ func runCapture(cmd *cobra.Command, args []string) error {
 	}
 
 	if save {
-		err = client.SaveImage(img, fileName)
+		err = imageFile.Save()
 	}
 
 	fmt.Println("\nComplete!")

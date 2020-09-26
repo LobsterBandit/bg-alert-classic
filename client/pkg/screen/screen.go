@@ -1,4 +1,5 @@
-package client
+// Package screen provides access to display devices
+package screen
 
 import (
 	"fmt"

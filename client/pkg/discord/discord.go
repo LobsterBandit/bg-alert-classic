@@ -7,14 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"image"
-	"image/png"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"strconv"
 
-	"github.com/lobsterbandit/wowclassic-bg-ocr/client"
+	"github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/img"
 )
 
 var webhookBaseURL string = "https://discordapp.com/api/webhooks/"
@@ -26,16 +23,11 @@ type Webhook struct {
 }
 
 type WebhookParams struct {
-	Content  string           `json:"content,omitempty"`
-	Username string           `json:"username,omitempty"`
-	Images   []*WebhookImage  `json:"images,omitempty"`
-	Embeds   []*MessageEmbed  `json:"embeds,omitempty"`
-	Timers   []client.BgTimer `json:"timers,omitempty"`
-}
-
-type WebhookImage struct {
-	Name  string
-	Image *image.RGBA
+	Content  string          `json:"content,omitempty"`
+	Username string          `json:"username,omitempty"`
+	Images   []*img.File     `json:"images,omitempty"`
+	Embeds   []*MessageEmbed `json:"embeds,omitempty"`
+	Timers   []img.BgTimer   `json:"timers,omitempty"`
 }
 
 func (w *Webhook) PostDiscordMessage() (err error) {
@@ -67,7 +59,7 @@ func (w *Webhook) executeMultipart(wait bool) (response *Message, err error) {
 	mw := multipart.NewWriter(body)
 
 	// add image form fields
-	err = addImageParts(mw, w.Params.Images)
+	err = img.AddToMultipartForm(mw, w.Params.Images)
 	if err != nil {
 		return
 	}
@@ -115,22 +107,6 @@ func (w *Webhook) executeMultipart(wait bool) (response *Message, err error) {
 	}
 
 	return response, nil
-}
-
-func addImageParts(w *multipart.Writer, images []*WebhookImage) error {
-	for i, image := range images {
-		fw, err := w.CreateFormFile("image"+strconv.Itoa(i), image.Name)
-		if err != nil {
-			return err
-		}
-
-		err = png.Encode(fw, image.Image)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func addPayloadJSON(w *multipart.Writer, content string) error {

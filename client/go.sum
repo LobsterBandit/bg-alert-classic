@@ -60,6 +60,7 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/lobsterbandit/wowclassic-bg-ocr v0.0.0-20200926034239-cfa8b8e8514f h1:ggjVZY1Df0nTWccbswhOBib7llCcTt7JHQaL3I4wiRk=
+github.com/lobsterbandit/wowclassic-bg-ocr v0.0.0-20200926201004-0c6b02757aa6 h1:kwlzpmXkAOcl040Zt0fHtpCz0R3SOu/F7qRX5KB2oAQ=
 github.com/lucasb-eyer/go-colorful v1.0.2/go.mod h1:0MS4r+7BZKSJ5mw4/S5MPN+qHFF1fYclkSPilDOKW0s=
 github.com/lucasb-eyer/go-colorful v1.0.3 h1:QIbQXiugsb+q10B+MI+7DI1oQLdmnep86tWFlaaUAac=
 github.com/lucasb-eyer/go-colorful v1.0.3/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=

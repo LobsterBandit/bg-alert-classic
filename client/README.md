@@ -1,6 +1,9 @@
-# wowclassic-bg-ocr client
+# classic-bg-ocr
 
-A Windows Go client to screenshot an area of the screen and save a png or upload to an OCR server for analysis.
+A Windows Go client to screenshot an area of the screen and
+- save as png
+- run OCR analysis for battleground timers
+- post message to discord channel via webhook
 
 ## Development
 
