@@ -30,13 +30,13 @@ var (
 )
 
 func init() {
-	captureCmd.PersistentFlags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
-	captureCmd.PersistentFlags().BoolVarP(
+	captureCmd.Flags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
+	captureCmd.Flags().BoolVarP(
 		&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
-	captureCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "path to a local image file")
-	captureCmd.PersistentFlags().BoolVarP(&save, "save", "s", false, "save captured image to file")
-	captureCmd.PersistentFlags().StringVarP(&webhookID, "id", "i", "", "discord webhook id")
-	captureCmd.PersistentFlags().StringVarP(&webhookToken, "token", "t", "", "discord webhook token")
+	captureCmd.Flags().StringVarP(&file, "file", "f", "", "path to a local image file")
+	captureCmd.Flags().BoolVarP(&save, "save", "s", false, "save captured image to file")
+	captureCmd.Flags().StringVarP(&webhookID, "id", "i", "", "discord webhook id")
+	captureCmd.Flags().StringVarP(&webhookToken, "token", "t", "", "discord webhook token")
 
 	rootCmd.AddCommand(captureCmd)
 }
