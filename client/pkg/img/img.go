@@ -144,3 +144,27 @@ func AddToMultipartForm(w *multipart.Writer, images []*File) error {
 
 	return nil
 }
+
+func FromFile(path string) (imageFile *File, err error) {
+	infile, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer infile.Close()
+
+	pngImage, err := png.Decode(infile)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := infile.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return &File{
+		Name:      infile.Name(),
+		Timestamp: Timestamp(stats.ModTime().Unix()),
+		Image:     pngImage.(*image.RGBA),
+	}, nil
+}
