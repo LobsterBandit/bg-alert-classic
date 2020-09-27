@@ -18,6 +18,7 @@ var (
 	analyze      bool
 	discord      bool
 	file         string
+	ocrURL       string
 	save         bool
 	webhookID    string
 	webhookToken string
@@ -29,12 +30,13 @@ var (
 		RunE:  runCapture,
 	}
 
+	ErrCaptureIncompatibleFlagset = errors.New("incompatible set of flags")
 	ErrWebhookMissingRequiredArgs = errors.New("webhookID and webhookToken are required")
 )
 
 func init() {
-	// TODO: add ocr server flag for when analyze is set
 	captureCmd.Flags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
+	captureCmd.Flags().StringVarP(&ocrURL, "url", "u", "", "remote ocr analysis endpoint, required if analyze is set")
 	captureCmd.Flags().BoolVarP(
 		&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
 	// TODO: add output flag for file save location
@@ -54,6 +56,10 @@ func runCapture(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
 	}
 
+	if analyze && ocrURL == "" {
+		return fmt.Errorf("url is required if analyze is set: %w", ErrCaptureIncompatibleFlagset)
+	}
+
 	var imageFile *img.File
 	if file != "" {
 		// open local file and set capture to that
@@ -65,7 +71,7 @@ func runCapture(cmd *cobra.Command, args []string) (err error) {
 
 	var results []img.BgTimer
 	if analyze {
-		results, err = imageFile.Post("http://192.168.1.14:3003")
+		results, err = imageFile.Post(ocrURL)
 		if err != nil {
 			return err
 		}
