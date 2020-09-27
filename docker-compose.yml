@@ -4,17 +4,30 @@ services:
   server:
     build:
       context: server
-      dockerfile: Dockerfile
-    container_name: wowclassic-bg-ocr-server
-    init: true
+      dockerfile: dev.Dockerfile
+    container_name: bg-alert-classic-server-dev
+    user: node
+    working_dir: /usr/src
     ports:
-      - "3003:3003"
+      - "${PORT:-3003}:${PORT:-3003}"
     environment:
-      - NODE_ENV=production
-      - PORT=3003
+      - NODE_ENV=development
+      - PORT=${PORT:-3003}
       - SAVE_PREPROCESSED=true
-      - TZ=America/New_York
+      - TZ=${TZ}
     volumes:
-      # map this volume to save images from the express server
-      # if SAVE_PREPROCESSED is set to true
-      - ./server/testdata:/testdata
+      - ./server:/usr/src
+      - server_nm:/usr/src/node_modules
+
+  client:
+    image: lobsterbandit/dev-golang:edge
+    container_name: bg-alert-classic-dev
+    tty: true
+    working_dir: /workspaces/bg-alert-classic
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - .:/workspaces/bg-alert-classic
+
+volumes:
+  server_nm:

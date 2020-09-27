@@ -13,10 +13,10 @@ When one bg is ready for entry other active timers pause. Other timers will show
 
 ```bash
 # setup dev container
-docker-compose -f ../docker-compose.dev.yml up -d
+docker-compose up -d
 
 # enter container to run one-off script or start express server
-docker-compose -f ../docker-compose.dev.yml exec -it server bash
+docker-compose exec -it server bash
 ```
 
 ### One-off
@@ -55,7 +55,7 @@ Results
 npm start
 
 # analyze an image
-curl -F image=@/path/to/image.png http://localhost:3000
+curl -F image=@/path/to/image.png http://localhost:3003
 ```
 
 Response

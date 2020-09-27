@@ -2,10 +2,10 @@
 
 const { app, shutdown } = require("./server");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3003;
 
 const server = app.listen(port, () => {
-  console.log(`wowclassic-bg-ocr listening at http://localhost:${port}`);
+  console.log(`bg-alert-classic listening at http://localhost:${port}`);
 });
 
 // quit on ctrl-c when running docker in terminal

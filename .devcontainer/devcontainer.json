@@ -1,11 +1,11 @@
 {
-  "name": "wowclassic-bg-ocr-client",
+  "name": "bg-alert-classic",
   "image": "lobsterbandit/dev-golang:edge",
   "extensions": ["golang.go", "mhutchie.git-graph"],
   "shutdownAction": "none",
   // if launching container remote over ssh uncomment workspaceMount and update source/target dirs as needed
   // mount source from git root so git commands will work from inside container
-  "workspaceMount": "source=/home/lobsterbandit/wowclassic-bg-ocr,target=/workspaces/wowclassic-bg-ocr,type=bind,consistency=cached",
+  "workspaceMount": "source=/home/lobsterbandit/bg-alert-classic,target=/workspaces/bg-alert-classic,type=bind,consistency=cached",
   "mounts": [
     "source=go-vscode-server,target=/home/vscode/.vscode-server/extensions,type=volume",
     "source=go-vscode-server-insiders,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
