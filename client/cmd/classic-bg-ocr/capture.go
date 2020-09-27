@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	d "github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/discord"
 	"github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/img"
@@ -33,6 +37,10 @@ var (
 	write bool
 	// path to write captured image
 	outFile string
+	// run in daemon mode
+	daemon bool
+	// run command every N seconds
+	every int
 
 	captureCmd = &cobra.Command{
 		Use:   "capture",
@@ -69,15 +77,33 @@ func addCaptureFlags() {
 	captureCmd.Flags().StringVarP(&outFile, "out", "o", "", "path to write captured image")
 
 	captureCmd.Flags().StringVarP(&file, "file", "f", "", "path to a local image file")
+
+	captureCmd.Flags().BoolVar(
+		&daemon, "daemon", false, "in daemon mode command is run every N seconds controlled by the --every flag")
+	captureCmd.Flags().IntVar(&every, "every", 15, "run command every N seconds; default=15")
 }
 
-func runCapture(cmd *cobra.Command, args []string) (err error) {
-	// exit early if required arg combinations are not met
-	err = validateFlags()
-	if err != nil {
-		return err
+func validateFlags() error {
+	if n := len(points); n != 0 && n != 2 {
+		return fmt.Errorf("%d points provided: %w", n, ErrCaptureNotTwoPoints)
 	}
 
+	if discord && (webhookID == "" || webhookToken == "") {
+		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
+	}
+
+	if analyze && ocrURL == "" {
+		return fmt.Errorf("url is required if analyze is set: %w", ErrCaptureIncompatibleFlagset)
+	}
+
+	if daemon && file != "" {
+		return fmt.Errorf("daemon and file flags cannot be set together: %w", ErrCaptureIncompatibleFlagset)
+	}
+
+	return nil
+}
+
+func executeCommand() (err error) {
 	var imageFile *img.File
 	if file != "" {
 		imageFile, err = img.FromFile(file)
@@ -125,20 +151,69 @@ func runCapture(cmd *cobra.Command, args []string) (err error) {
 	return err
 }
 
-func validateFlags() error {
-	if n := len(points); n != 0 && n != 2 {
-		return fmt.Errorf("%d points provided: %w", n, ErrCaptureNotTwoPoints)
+func runCapture(cmd *cobra.Command, args []string) (err error) {
+	// exit early if required arg combinations are not met
+	err = validateFlags()
+	if err != nil {
+		return err
 	}
 
-	if discord && (webhookID == "" || webhookToken == "") {
-		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
+	if !daemon {
+		return executeCommand()
 	}
 
-	if analyze && ocrURL == "" {
-		return fmt.Errorf("url is required if analyze is set: %w", ErrCaptureIncompatibleFlagset)
+	return daemonMode()
+}
+
+func daemonMode() (err error) {
+	fmt.Println("starting up daemon mode...")
+
+	c := make(chan os.Signal, 1)
+	commands := make(chan bool, 1)
+	sleep := make(chan bool, 1)
+	done := make(chan error, 1)
+
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		sig := <-c
+		fmt.Printf("received %v\n", sig)
+		// cleanup
+		done <- nil
+	}()
+
+	doCommand := func() {
+		fmt.Println("executing capture command...")
+
+		err = executeCommand()
+		if err != nil {
+			done <- err
+		}
+
+		sleep <- true
+	}
+	// fire off initial execution
+	go doCommand()
+
+	doSleep := func() {
+		fmt.Printf("sleeping for %d seconds...\n", every)
+		time.Sleep(time.Duration(every) * time.Second)
+
+		commands <- true
 	}
 
-	return nil
+	for {
+		select {
+		case <-commands:
+			go doCommand()
+		case <-sleep:
+			go doSleep()
+		case err = <-done:
+			fmt.Println("exiting...")
+
+			return err
+		}
+	}
 }
 
 func captureScreen(points []string) (imageFile *img.File, err error) {
