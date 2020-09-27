@@ -15,6 +15,9 @@ var (
 		Use:   "classic-bg-ocr",
 		Short: "Classic WoW BG timer capture and analysis",
 		Long:  `Classic WoW battleground timer alerts via screen capture and OCR`,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("\nclassic-bg-ocr %v\n\tWoW Classic BG timer screen capture and analysis\n\n", cmd.Version)
+		},
 	}
 )
 

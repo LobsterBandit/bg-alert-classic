@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -74,10 +75,43 @@ func (f *File) Post(server string) (results []BgTimer, err error) {
 }
 
 func (f *File) Save() error {
-	file, _ := os.Create(f.Name)
+	file, err := os.Create(f.Name)
+	if err != nil {
+		return fmt.Errorf("image saving error: %w", err)
+	}
 	defer file.Close()
 
-	err := png.Encode(file, f.Image)
+	err = png.Encode(file, f.Image)
+	if err != nil {
+		return fmt.Errorf("image saving error: %w", err)
+	}
+
+	return nil
+}
+
+func (f *File) Write(path string) error {
+	filePath := ""
+
+	if ext := filepath.Ext(path); ext != "" {
+		// extension included, assume full filename given
+		filePath = filepath.FromSlash(path)
+	} else {
+		// only dir given use original filename
+		filePath = filepath.Join(path, f.Name)
+	}
+
+	err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = png.Encode(file, f.Image)
 	if err != nil {
 		return fmt.Errorf("image saving error: %w", err)
 	}

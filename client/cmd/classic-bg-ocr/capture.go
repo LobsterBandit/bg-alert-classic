@@ -15,13 +15,22 @@ import (
 )
 
 var (
-	analyze      bool
-	discord      bool
-	file         string
-	ocrURL       string
-	save         bool
-	webhookID    string
+	// send image for OCR analysis
+	analyze bool
+	// OCR analysis endpoint
+	ocrURL string
+	// send image results as message to discord channel
+	discord bool
+	// discord webhook id
+	webhookID string
+	// discord webhook token
 	webhookToken string
+	// path to local image
+	file string
+	// write captured image to file
+	write bool
+	// path to write captured image
+	outFile string
 
 	captureCmd = &cobra.Command{
 		Use:   "capture",
@@ -37,20 +46,21 @@ var (
 func init() {
 	captureCmd.Flags().BoolVarP(&analyze, "analyze", "a", false, "analyze image for bg timers")
 	captureCmd.Flags().StringVarP(&ocrURL, "url", "u", "", "remote ocr analysis endpoint, required if analyze is set")
+
 	captureCmd.Flags().BoolVarP(
 		&discord, "discord", "d", false, "send screen capture and analysis via webhook to a discord channel")
-	// TODO: add output flag for file save location
-	captureCmd.Flags().StringVarP(&file, "file", "f", "", "path to a local image file")
-	captureCmd.Flags().BoolVarP(&save, "save", "s", false, "save captured image to file")
 	captureCmd.Flags().StringVarP(&webhookID, "id", "i", "", "discord webhook id")
 	captureCmd.Flags().StringVarP(&webhookToken, "token", "t", "", "discord webhook token")
+
+	captureCmd.Flags().BoolVarP(&write, "write", "w", false, "write captured image to file")
+	captureCmd.Flags().StringVarP(&outFile, "out", "o", "", "path to write captured image")
+
+	captureCmd.Flags().StringVarP(&file, "file", "f", "", "path to a local image file")
 
 	rootCmd.AddCommand(captureCmd)
 }
 
 func runCapture(cmd *cobra.Command, args []string) (err error) {
-	fmt.Printf("\nwowclassic-bg-ocr-client %v\n\tWoW Classic BG timer screen capture and analysis\n\n", version)
-
 	// exit early if required arg combinations are not met
 	if discord && (webhookID == "" || webhookToken == "") {
 		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
@@ -97,8 +107,14 @@ func runCapture(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	if save {
-		err = imageFile.Save()
+	if write {
+		if outFile != "" {
+			// write file to given path
+			err = imageFile.Write(outFile)
+		} else {
+			// save to current directory
+			err = imageFile.Save()
+		}
 	}
 
 	fmt.Println("\nComplete!")

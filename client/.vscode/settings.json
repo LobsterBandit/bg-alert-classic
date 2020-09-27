@@ -8,7 +8,9 @@
     "--disable",
     "gochecknoglobals",
     "--disable",
-    "gochecknoinits"
+    "gochecknoinits",
+    "--disable",
+    "godot"
   ],
   "go.vetOnSave": "package",
   "[go]": {
