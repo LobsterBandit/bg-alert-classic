@@ -14,20 +14,32 @@ import (
 	"strconv"
 )
 
+type Timestamp int64
+
+func (t Timestamp) ToInt64() int64 {
+	return int64(t)
+}
+
+func (t Timestamp) ToString() string {
+	return strconv.FormatInt(t.ToInt64(), 10)
+}
+
 type BgTimer struct {
-	Bg      string
-	Hours   string
-	Minutes string
-	Seconds string
-	Ready   bool
+	Timestamp Timestamp `json:"timestamp"`
+	Bg        string    `json:"bg"`
+	Hours     string    `json:"hours"`
+	Minutes   string    `json:"minutes"`
+	Seconds   string    `json:"seconds"`
+	Ready     bool      `json:"ready"`
 }
 
 type File struct {
-	Name  string
-	Image *image.RGBA
+	Name      string
+	Timestamp Timestamp
+	Image     *image.RGBA
 }
 
-func (f *File) Post(server string) (timers []BgTimer, err error) {
+func (f *File) Post(server string) (results []BgTimer, err error) {
 	fmt.Printf("Posting image %q to OCR server %s\n", f.Name, server)
 
 	body := new(bytes.Buffer)
@@ -53,12 +65,12 @@ func (f *File) Post(server string) (timers []BgTimer, err error) {
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&timers)
+	err = json.NewDecoder(resp.Body).Decode(&results)
 	if err != nil {
 		return nil, err
 	}
 
-	return timers, err
+	return results, err
 }
 
 func (f *File) Save() error {
@@ -74,13 +86,23 @@ func (f *File) Save() error {
 }
 
 func AddToMultipartForm(w *multipart.Writer, images []*File) error {
-	for i, image := range images {
-		fw, err := w.CreateFormFile("image"+strconv.Itoa(i), image.Name)
+	for _, image := range images {
+		fw, err := w.CreateFormFile("image", image.Name)
 		if err != nil {
 			return err
 		}
 
 		err = png.Encode(fw, image.Image)
+		if err != nil {
+			return err
+		}
+
+		fw, err = w.CreateFormField("timestamp")
+		if err != nil {
+			return err
+		}
+
+		_, err = fw.Write([]byte(image.Timestamp.ToString()))
 		if err != nil {
 			return err
 		}

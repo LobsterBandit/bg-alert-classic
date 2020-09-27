@@ -26,6 +26,10 @@ app.post("/", upload.single("image"), async (req, res) => {
     res.status(400).send("Missing image");
   }
   console.log(req.file);
+  console.log(req.body);
+  console.log(
+    new Date(parseInt(req.body["timestamp"], 10) * 1000).toLocaleString()
+  );
 
   try {
     const buffer = await preprocessImage(
@@ -39,7 +43,12 @@ app.post("/", upload.single("image"), async (req, res) => {
 
     const results = parseResults(text);
 
-    res.send(results);
+    res.send(
+      results.map((result) => {
+        result["timestamp"] = parseInt(req.body["timestamp"], 10);
+        return result;
+      })
+    );
   } catch (error) {
     console.error(error);
     res.status(500).send(error);

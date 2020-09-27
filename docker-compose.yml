@@ -13,6 +13,7 @@ services:
       - NODE_ENV=production
       - PORT=3003
       - SAVE_PREPROCESSED=true
+      - TZ=America/New_York
     volumes:
       # map this volume to save images from the express server
       # if SAVE_PREPROCESSED is set to true

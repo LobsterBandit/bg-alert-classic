@@ -33,8 +33,6 @@ type WebhookParams struct {
 func (w *Webhook) PostDiscordMessage() (err error) {
 	fmt.Println("\nSending webhook to discord...")
 
-	// fmt.Printf("Webhook payload: %v\n", webhookParams)
-
 	msg, err := w.executeMultipart(false)
 	if err != nil {
 		return

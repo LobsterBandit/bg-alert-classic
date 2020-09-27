@@ -14,6 +14,7 @@ services:
       - NODE_ENV=development
       - PORT=3003
       - SAVE_PREPROCESSED=true
+      - TZ=America/New_York
     volumes:
       - ./server:/usr/src
       - server_nm:/usr/src/node_modules

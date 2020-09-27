@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/png"
+	"os"
 	"time"
 
 	d "github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/discord"
@@ -44,7 +46,7 @@ func init() {
 	rootCmd.AddCommand(captureCmd)
 }
 
-func runCapture(cmd *cobra.Command, args []string) error {
+func runCapture(cmd *cobra.Command, args []string) (err error) {
 	fmt.Printf("\nwowclassic-bg-ocr-client %v\n\tWoW Classic BG timer screen capture and analysis\n\n", version)
 
 	// exit early if required arg combinations are not met
@@ -52,39 +54,23 @@ func runCapture(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("missing required arguments to send discord webhooks: %w", ErrWebhookMissingRequiredArgs)
 	}
 
-	// get points from flags
-	// otherwise default to primary screen bounds
-	pt0 := image.Point{
-		X: 575,
-		Y: 1275,
-	}
-	pt1 := image.Point{
-		X: 800,
-		Y: 1400,
-	}
-	bgArea := image.Rectangle{pt0, pt1}
-
-	capture, err := screen.CaptureScreenArea(bgArea)
-
-	captureTime := time.Now()
-	fileName := fmt.Sprintf("%dx%d_%s_%s_%d.png",
-		capture.Rect.Dx(), capture.Rect.Dy(), bgArea.Min, bgArea.Max, captureTime.Unix())
-
-	fmt.Printf("Captured screen area: %v\n\tTimestamp: %s\n\tFilename: %q\n\n", bgArea, captureTime, fileName)
-
-	imageFile := &img.File{
-		Name:  fileName,
-		Image: capture,
+	var imageFile *img.File
+	if file != "" {
+		// open local file and set capture to that
+		imageFile, err = loadFromFile(file)
+	} else {
+		// capture screen
+		imageFile, err = captureScreen()
 	}
 
-	var timers []img.BgTimer
+	var results []img.BgTimer
 	if analyze {
-		timers, err = imageFile.Post("http://192.168.1.14:3003")
+		results, err = imageFile.Post("http://192.168.1.14:3003")
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("\nTimer Results:\n%v\n", timers)
+		fmt.Printf("\nTimer Results:\n%v\n", results)
 	}
 
 	if discord {
@@ -94,7 +80,7 @@ func runCapture(cmd *cobra.Command, args []string) error {
 			Params: &d.WebhookParams{
 				Content: "BG Timer Alert",
 				Images:  []*img.File{imageFile},
-				Timers:  timers,
+				Timers:  results,
 			},
 		}
 
@@ -112,4 +98,59 @@ func runCapture(cmd *cobra.Command, args []string) error {
 	fmt.Println("\nComplete!")
 
 	return err
+}
+
+func loadFromFile(path string) (*img.File, error) {
+	infile, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer infile.Close()
+
+	imageFile, err := png.Decode(infile)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := infile.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	return &img.File{
+		Name:      infile.Name(),
+		Timestamp: img.Timestamp(stats.ModTime().Unix()),
+		Image:     imageFile.(*image.RGBA),
+	}, nil
+}
+
+func captureScreen() (*img.File, error) {
+	// get points from flags
+	// otherwise default to primary screen bounds
+	pt0 := image.Point{
+		X: 575,
+		Y: 1275,
+	}
+	pt1 := image.Point{
+		X: 800,
+		Y: 1400,
+	}
+	bgArea := image.Rectangle{pt0, pt1}
+
+	capture, err := screen.CaptureScreenArea(bgArea)
+	if err != nil {
+		return nil, err
+	}
+
+	captureTime := time.Now()
+	fileName := fmt.Sprintf("%dx%d_%s_%s_%d.png",
+		capture.Rect.Dx(), capture.Rect.Dy(), bgArea.Min, bgArea.Max, captureTime.Unix())
+
+	fmt.Printf("Captured screen area: %v\n\tTimestamp: %s\n\tFilename: %q\n\n", bgArea, captureTime, fileName)
+
+	return &img.File{
+		Name:      fileName,
+		Timestamp: img.Timestamp(captureTime.Unix()),
+		Image:     capture,
+	}, nil
 }
