@@ -11,7 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/lobsterbandit/bg-alert-classic/client/pkg/img"
+	"github.com/lobsterbandit/bg-alert-classic/pkg/img"
 )
 
 var webhookBaseURL string = "https://discordapp.com/api/webhooks/"

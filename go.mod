@@ -1,4 +1,4 @@
-module github.com/lobsterbandit/bg-alert-classic/client
+module github.com/lobsterbandit/bg-alert-classic
 
 go 1.15
 

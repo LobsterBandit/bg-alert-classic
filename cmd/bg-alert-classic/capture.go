@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	d "github.com/lobsterbandit/bg-alert-classic/client/pkg/discord"
-	"github.com/lobsterbandit/bg-alert-classic/client/pkg/img"
-	"github.com/lobsterbandit/bg-alert-classic/client/pkg/screen"
+	d "github.com/lobsterbandit/bg-alert-classic/pkg/discord"
+	"github.com/lobsterbandit/bg-alert-classic/pkg/img"
+	"github.com/lobsterbandit/bg-alert-classic/pkg/screen"
 	"github.com/spf13/cobra"
 )
 
