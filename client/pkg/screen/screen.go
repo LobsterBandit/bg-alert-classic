@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/kbinani/screenshot"
-	"github.com/lobsterbandit/wowclassic-bg-ocr/client/pkg/img"
+	"github.com/lobsterbandit/bg-alert-classic/client/pkg/img"
 )
 
 // Capture the given screen area
